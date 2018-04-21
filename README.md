@@ -1,2 +1,2 @@
-# zippio
+# zipio
 lossless compression program
