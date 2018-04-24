@@ -68,55 +68,58 @@ void uncompress(const char *str) {
 				fprintf(writeFile, "%c", buf[index+1]);
 				index+=2;
 
-			}else if(buf[index] == 'r') {
-				int start = index;
-				int end = index+1;
-				while(buf[end] != 'r') {
-					end++;
-					if(end < BUFFER_SIZE-2 && buf[end] == '\\' && buf[end+1] == 'r') {
-						end+=2;
-					}
-				}
-				char value = buf[end-1];
+			}
+			// else if(buf[index] == 'r') {
+			// 	int start = index;
+			// 	int end = index+1;
+			// 	while(buf[end] != 'r') {
+			// 		end++;
+			// 		if(end < BUFFER_SIZE-2 && buf[end] == '\\' && buf[end+1] == 'r') {
+			// 			end+=2;
+			// 		}
+			// 	}
+			// 	char value = buf[end-1];
 
-				int numStart = start+1;
-				int numEnd = end-1;
-				int numLen = numEnd-numStart;
-				char num[numLen];
-				int numIndex = 0;
-				for(int i = numStart; i < numEnd; i++) {
-					num[numIndex] = buf[i];
-					numIndex++;
-				}
-				int repeat = atoi(num);
+			// 	int numStart = start+1;
+			// 	int numEnd = end-1;
+			// 	int numLen = numEnd-numStart;
+			// 	char num[numLen];
+			// 	int numIndex = 0;
+			// 	for(int i = numStart; i < numEnd; i++) {
+			// 		num[numIndex] = buf[i];
+			// 		numIndex++;
+			// 	}
+			// 	int repeat = atoi(num);
 
 
-				for(int i = 0; i < repeat; i++) {
-					fprintf(writeFile, "%c", value);
-				}
-				index = end;
-				index++;
-			}else if(buf[index] == 'c') {
-				index++;
-				char startChar = buf[index];
-				fprintf(writeFile, "%c", startChar);
-				index++;
-				while (buf[index] != 'c') {
-					char value = buf[index];
-					char v1 = getFirstValueFromCharEncoding(value);
-					char v2 = getSecondValueFromCharEncoding(value);
-					if(startChar +v1 != startChar) {
-						fprintf(writeFile, "%c", startChar+v1);						
-					}
-					if(startChar + v2 != startChar) {
-						fprintf(writeFile, "%c", startChar+v2);						
-					}
-					index++;
-				}
-				if(buf[index] == 'c') {
-					index++;
-				}
-			}else {
+			// 	for(int i = 0; i < repeat; i++) {
+			// 		fprintf(writeFile, "%c", value);
+			// 	}
+			// 	index = end;
+			// 	index++;
+			// }
+			// else if(buf[index] == 'c') {
+			// 	index++;
+			// 	char startChar = buf[index];
+			// 	fprintf(writeFile, "%c", startChar);
+			// 	index++;
+			// 	while (buf[index] != 'c') {
+			// 		char value = buf[index];
+			// 		char v1 = getFirstValueFromCharEncoding(value);
+			// 		char v2 = getSecondValueFromCharEncoding(value);
+			// 		if(startChar +v1 != startChar) {
+			// 			fprintf(writeFile, "%c", startChar+v1);						
+			// 		}
+			// 		if(startChar + v2 != startChar) {
+			// 			fprintf(writeFile, "%c", startChar+v2);						
+			// 		}
+			// 		index++;
+			// 	}
+			// 	if(buf[index] == 'c') {
+			// 		index++;
+			// 	}
+			// }
+			else {
 				fprintf(writeFile, "%c", buf[index]);
 				index++;
 			}
@@ -162,55 +165,60 @@ void compress(const char *str) {
 	while (bytes != '\0') {
 		int index = 0;
 		while(buf[index] != '\0') {
-			if(index < BUFFER_SIZE-1 && buf[index] == buf[index+1]) {
-				int repeat = 2;
-				while(index + repeat < BUFFER_SIZE && buf[index] == buf[index+repeat]) {
-					repeat++;
-				}
-				char val[3];
-				checkForEscapedChars(buf[index], val);
-				fprintf(writeFile, "r%d%sr", repeat, val);
+			// if(index < BUFFER_SIZE-1 && buf[index] == buf[index+1]) {
+			// 	int repeat = 2;
+			// 	while(index + repeat < BUFFER_SIZE && buf[index] == buf[index+repeat]) {
+			// 		repeat++;
+			// 	}
+			// 	char val[3];
+			// 	checkForEscapedChars(buf[index], val);
+			// 	fprintf(writeFile, "r%d%sr", repeat, val);
 			
-				index+=repeat;
-			}else if(index < BUFFER_SIZE-2 
-				&& (buf[index+1]-buf[index]) < 15 && (buf[index+2]-buf[index]) > 0
-				&& (buf[index+2]-buf[index]) < 15 && (buf[index+2]-buf[index]) > 0
-				&& (buf[index+1] != buf[index+2])){
-				char startChar = buf[index];
-				char val[3];
-				checkForEscapedChars(buf[index], val);
-				fprintf(writeFile, "c%s", val);
-				while(index < BUFFER_SIZE-1 
-					&& buf[index+1] - startChar < 15 
-					&& buf[index+1] - startChar > 0 
-					&& buf[index+2] != '\0') {
-					int dif1 = buf[index+1] - startChar;
-					int dif2 = buf[index+2] - startChar;
-					// this corresponds to a compression value (c) which is not allowed
-					if(dif1 == 6 && dif2 == 3) {
-						break;
-					}
-					if(index <  BUFFER_SIZE-2 && buf[index+2]-startChar < 15) {
-						char toWrite = getCharFromDif(dif1, dif2);
-						fprintf(writeFile, "%c", toWrite);
-						index+=2;
-					}else {
-						int dif2 = 15;
-						char toWrite = getCharFromDif(dif1, dif2);
-						fprintf(writeFile, "%c", toWrite);
-						index++;
-					}
-				} 
-				fprintf(writeFile, "c");
-				if(buf[index] == 'c') {
-					index++;					
-				}
-			}else{
+			// 	index+=repeat;
+			// }
+			// else if(index < BUFFER_SIZE-2 
+			// 	&& (buf[index+1]-buf[index]) < 15 && (buf[index+1]-buf[index]) > 0
+			// 	&& (buf[index+2]-buf[index]) < 15 && (buf[index+2]-buf[index]) > 0
+			// 	&& (buf[index+1] != buf[index+2]) && buf[index+2] !='\0'){
+			// 	char startChar = buf[index];
+			// 	char val[3];
+			// 	checkForEscapedChars(buf[index], val);
+			// 	printf("At character: %d\n", buf[index]);
+			// 	fprintf(writeFile, "c%s", val);
+			// 	while(index < BUFFER_SIZE-1 
+			// 		&& buf[index+1] - startChar < 15 
+			// 		&& buf[index+1] - startChar > 0 
+			// 		&& buf[index+2] != '\0') {
+			// 		int dif1 = buf[index+1] - startChar;
+			// 		int dif2 = buf[index+2] - startChar;
+			// 		printf("Define 1: %d\n", buf[index+1]);
+			// 		printf("Define 2: %d\n", buf[index+2]);
+			// 		// this corresponds to a compression value (c) which is not allowed
+			// 		if(dif1 == 6 && dif2 == 3) {
+			// 			break;
+			// 		}
+			// 		if(index <  BUFFER_SIZE-2 && buf[index+2]-startChar < 15 && buf[index+2]-startChar > 0) {
+			// 			char toWrite = getCharFromDif(dif1, dif2);
+			// 			fprintf(writeFile, "%c", toWrite);
+			// 			index+=2;
+			// 		}else {
+			// 			int dif2 = 0;
+			// 			char toWrite = getCharFromDif(dif1, dif2);
+			// 			fprintf(writeFile, "%c", toWrite);
+			// 			index++;
+			// 		}
+			// 	} 
+			// 	fprintf(writeFile, "c");
+			// 	// if(buf[index] == 'c') {
+			// 		index++;					
+			// 	// }
+			// }
+			// else{
 				char val[3];
 				checkForEscapedChars(buf[index], val);
 				fprintf(writeFile, "%s", val);
 				index++;	
-			}
+			// }
 		}
 		bytes = fgets(buf, BUFFER_SIZE, readFile);
 	}
