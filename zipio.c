@@ -15,6 +15,9 @@ void compress(const char *str);
 char getVal(const char v, char* vArr);
 void getRidOfPrefix(const char* original, char *out);
 void getRidOfSuffix(const char* original, char *out);
+unsigned char getCharFromDif(const int dif1, const int dif2);
+int getFirstValueFromCharEncoding (const char value);
+int getSecondValueFromCharEncoding (const char value);
 
 int main(int argc, char** argv) {
 
@@ -48,6 +51,7 @@ void uncompress(const char *str) {
 	unsigned char* buf = malloc(sizeof(unsigned char)*BUFFER_SIZE);
 	unsigned char* bytes = fgets(buf, BUFFER_SIZE, readFile);
 
+	// get rid of /n at end of file name
 	int bufIndex = 0;
 	while(buf[bufIndex] != '\0') {
 		bufIndex++;
@@ -61,7 +65,6 @@ void uncompress(const char *str) {
 		int index = 0;
 		while(buf[index] != '\0') {
 			if(buf[index] == '\\') {
-				printf("Found escaped char: %c. Val after: %c\n", buf[index+1], buf[index+2]);
 				fprintf(writeFile, "%c", buf[index+1]);
 				index+=2;
 
@@ -87,13 +90,32 @@ void uncompress(const char *str) {
 				}
 				int repeat = atoi(num);
 
-				printf("Repeating Val: %d, val: %c \n", repeat, value);
 
 				for(int i = 0; i < repeat; i++) {
 					fprintf(writeFile, "%c", value);
 				}
 				index = end;
 				index++;
+			}else if(buf[index] == 'c') {
+				index++;
+				char startChar = buf[index];
+				fprintf(writeFile, "%c", startChar);
+				index++;
+				while (buf[index] != 'c') {
+					char value = buf[index];
+					char v1 = getFirstValueFromCharEncoding(value);
+					char v2 = getSecondValueFromCharEncoding(value);
+					if(startChar +v1 != startChar) {
+						fprintf(writeFile, "%c", startChar+v1);						
+					}
+					if(startChar + v2 != startChar) {
+						fprintf(writeFile, "%c", startChar+v2);						
+					}
+					index++;
+				}
+				if(buf[index] == 'c') {
+					index++;
+				}
 			}else {
 				fprintf(writeFile, "%c", buf[index]);
 				index++;
@@ -148,9 +170,42 @@ void compress(const char *str) {
 				char val[3];
 				getVal(buf[index], val);
 				fprintf(writeFile, "r%d%sr", repeat, val);
-				printf("Repeat\n");
+			
 				index+=repeat;
-			}else {
+			}else if(index < BUFFER_SIZE-2 
+				&& (buf[index+1]-buf[index]) < 15 
+				&& (buf[index+2]-buf[index]) < 15
+				&& (buf[index+1] != buf[index+2])){
+				char startChar = buf[index];
+				char val[3];
+				getVal(buf[index], val);
+				fprintf(writeFile, "c%s", val);
+				while(index < BUFFER_SIZE-1 
+					&& buf[index+1] - startChar < 15 
+					&& buf[index+1] - startChar > 0 
+					&& buf[index+2] != '\0') {
+					int dif1 = buf[index+1] - startChar;
+					int dif2 = buf[index+2] - startChar;
+					// this corresponds to a compression value (c) which is not allowed
+					if(dif1 == 6 && dif2 == 3) {
+						break;
+					}
+					if(index <  BUFFER_SIZE-2 && buf[index+2]-startChar < 15) {
+						char toWrite = getCharFromDif(dif1, dif2);
+						fprintf(writeFile, "%c", toWrite);
+						index+=2;
+					}else {
+						int dif2 = 15;
+						char toWrite = getCharFromDif(dif1, dif2);
+						fprintf(writeFile, "%c", toWrite);
+						index++;
+					}
+				} 
+				fprintf(writeFile, "c");
+				if(buf[index] == 'c') {
+					index++;					
+				}
+			}else{
 				char val[3];
 				getVal(buf[index], val);
 				fprintf(writeFile, "%s", val);
@@ -159,6 +214,22 @@ void compress(const char *str) {
 		}
 		bytes = fgets(buf, BUFFER_SIZE, readFile);
 	}
+}
+
+int getFirstValueFromCharEncoding (const char value) {
+	return (value >> 4) & 0x0F;
+}
+
+int getSecondValueFromCharEncoding (const char value) {
+	return (value >> 0) & 0x0F;
+}
+
+unsigned char getCharFromDif(const int dif1, const int dif2){
+	if(dif1 > 15 || dif2 > 15) {
+		exit(-1);
+	}
+
+	unsigned char returnVal = ((dif1 << 4) & 0xF0) | ((dif2 << 0) & 0x0F);
 }
 
 void getRidOfSuffix(const char* original, char *out) {
@@ -201,6 +272,10 @@ char getVal(const char v, char* vArr) {
 	}else if(v == '\\') {
 		vArr[0] = '\\';
 		vArr[1] = '\\';
+		vArr[2] = '\0';
+	}else if(v == 'c'){
+		vArr[0] = '\\';
+		vArr[1] = 'c';
 		vArr[2] = '\0';
 	}else {
 		vArr[0] = v;
