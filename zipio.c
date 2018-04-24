@@ -173,8 +173,8 @@ void compress(const char *str) {
 			
 				index+=repeat;
 			}else if(index < BUFFER_SIZE-2 
-				&& (buf[index+1]-buf[index]) < 15 
-				&& (buf[index+2]-buf[index]) < 15
+				&& (buf[index+1]-buf[index]) < 15 && (buf[index+2]-buf[index]) > 0
+				&& (buf[index+2]-buf[index]) < 15 && (buf[index+2]-buf[index]) > 0
 				&& (buf[index+1] != buf[index+2])){
 				char startChar = buf[index];
 				char val[3];
