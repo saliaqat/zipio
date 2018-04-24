@@ -14,3 +14,4 @@ cd ..;
 mv output/*.txt output2/;
 diff input output2 > ../differences.txt
 cd ..;
+cat differences.txt;

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 262144
 #define FILENAME_SIZE 512
 #define FILE_SUFFIX ".zipio"
 
@@ -12,7 +12,7 @@
 int EndsWith(const char *str, const char *suffix);
 void uncompress(const char *str);
 void compress(const char *str);
-char getVal(const char v, char* vArr);
+char checkForEscapedChars(const char v, char* vArr);
 void getRidOfPrefix(const char* original, char *out);
 void getRidOfSuffix(const char* original, char *out);
 unsigned char getCharFromDif(const int dif1, const int dif2);
@@ -168,7 +168,7 @@ void compress(const char *str) {
 					repeat++;
 				}
 				char val[3];
-				getVal(buf[index], val);
+				checkForEscapedChars(buf[index], val);
 				fprintf(writeFile, "r%d%sr", repeat, val);
 			
 				index+=repeat;
@@ -178,7 +178,7 @@ void compress(const char *str) {
 				&& (buf[index+1] != buf[index+2])){
 				char startChar = buf[index];
 				char val[3];
-				getVal(buf[index], val);
+				checkForEscapedChars(buf[index], val);
 				fprintf(writeFile, "c%s", val);
 				while(index < BUFFER_SIZE-1 
 					&& buf[index+1] - startChar < 15 
@@ -207,7 +207,7 @@ void compress(const char *str) {
 				}
 			}else{
 				char val[3];
-				getVal(buf[index], val);
+				checkForEscapedChars(buf[index], val);
 				fprintf(writeFile, "%s", val);
 				index++;	
 			}
@@ -264,7 +264,7 @@ void getRidOfPrefix(const char* original, char *out) {
 	}
 	out[j] = '\0';
 }
-char getVal(const char v, char* vArr) {
+char checkForEscapedChars(const char v, char* vArr) {
 	if(v == 'r') {
 		vArr[0] = '\\';
 		vArr[1] = 'r';
